@@ -24,7 +24,6 @@
 import numpy as np
 from scipy.optimize import curve_fit
 from .models import allModels
-from functools import partial
 
 class SK_Function:
     """
@@ -145,33 +144,32 @@ class SK_Function:
 
 def fit(rr, ff, nP, modelFunc, modelJac, ir0=0, kwargs={}):
     """
-    Return the parameters defining the fit
-    according to model.
+    Return the parameters defining the fit according to model.
 
-    rr: one-dimensional array-like, with elements 
-        interprtable as floats.
-        Inter-nuclear distance grid.
+    Parameters:
+    -----------
+    rr : one-dimensional array-like, with elements interprtable as 
+        floats. Inter-nuclear distance grid.
 
-    ff: one-dimensional array-like, with elements 
-        interprtable as floats.
-        Integral values at rr.
+    ff : one-dimensional array-like, with elements interprtable as 
+        floats. Integral values at rr.
 
-    nP: scalar, interpretable as int.
-        Number of parameters in the fit model.
+    nP : scalar, interpretable as int. Number of parameters in the 
+        fit model.
 
-    modelFunc: callable signature (rr, *param)
-               Evaluate the model function at rr.
+    modelFunc : callable signature (rr, *param) Evaluate the model 
+        function at rr.
 
-    modelJac: callable signature (rr, *param)
-              Evaluate the Jacobian of model 
-              function at rr.
+    modelJac : callable signature (rr, *param) Evaluate the Jacobian 
+        of model function at rr.
            
-    ir0: scalar, interpretable as int. 
-         Determines the first point in 
-         rr that enters the fit, 
-         avoiding problems with 
-         integrals padded with zeros at 
-         inter-nuclear distances."""
+    ir0 : scalar, interpretable as int. Determines the first point in
+        rr that enters the fit, avoiding problems with integrals padded
+        with zeros at inter-nuclear distances.
+    
+    Returns:
+    --------
+    """
 
     try:
         rr = np.array(rr, dtype=float)

@@ -27,13 +27,12 @@ from configparser import ConfigParser
 
 def readConfig(fileName):
     """
-    Read the configuration file <fileName>
-    and return the corresponding 
+    Read the configuration file <fileName> and return the corresponding
     configparser.ConfigParser()
     """
     config = ConfigParser()
     inputs = config.read(fileName)
-    msg = "Panicking. Give one input file only."
+    msg = "Panicking! Give one input file only."
     assert len(inputs) == 1, msg
     config["input_file"] = {1: inputs[0]}
     return config
@@ -43,39 +42,29 @@ def atomizeModel(string):
     """
     Tokenize the model name <string>.
     
-    The input is case insensitive and 
-    white space is ignored, i.e.
+    The input is case insensitive and white space is ignored, i.e.
 
         X Y => xy
 
-    Allowed tokens are model names
-    (valid python variable name), and 
-    two binary operators, namely, + 
-    and * . 
+    Allowed tokens are model names, and two binary operators, namely,
+    "+" and "*" . 
 
-    Allowed models can be checked in 
-    skfio.models.allModels .
+    Allowed models can be checked in skfio.models.allModels .
 
-    A number determining the number of  
-    parameters for each model is appended 
-    to the model type with "_" as a 
-    delimiter. E.g.
+    A number determining the number of  parameters for each model is 
+    appended to the model type with "_" as a delimiter. E.g.
 
         'P_5 * G_1 + G_3'
 
-         P_n: an skfio.models.polynomial 
-               model function with n parameters
-               in total, i.e. x0 and (n - 1) 
-               coefficients.
+         P_n : a skfio.models.polynomial model function with n 
+               parameters in total, i.e. n coefficients.
          
-         G_n: an skfio.models.gaussian
-               model function with n gaussians,
+         G_n : a skfio.models.gaussian model function with n gaussians,
                i.e. 3n parameters in total.
 
     """
     msg = """
-          The used value {} of type {}
-          is not allowed. Here is a legal
+          The used value {} of type {} is not allowed. Here is a legal
           example:
           
           'P_5 * G_1 + G_3'
@@ -106,18 +95,17 @@ def atomizeModel(string):
 
 def checkModelNameSyntax(name):
     """
-    Check if model name conforms 
-    with the expected formt.
+    Check if model name conforms with the expected format.
 
     Expected format:
-    NAME_NUMBER
+    ----------------
+    NAME_NUMBER : 
 
-    NAME can not have "_" in it.
+        NAME : can not have "_" in it.
 
-    NUMBER is a non-zero, base 10,integer 
-    literal, it determines the number of 
-    parameters for each model. It is appended 
-    to the model type with "_" as a delimiter.
+        NUMBER : is a non-zero, base 10,integer literal, it determines 
+            the number of parameters for each model. It is appended to 
+            the model type with "_" as a delimiter.
 
     """
     splits = name.split("_")

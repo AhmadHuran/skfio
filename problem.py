@@ -31,60 +31,58 @@ from itertools import product
 
 class Problem:
     """
-    Main entry point to skfio's basic
-    functionality.
+    Main entry point to skfio's basic functionality.
 
     Instance variables:
+    -------------------
       
-      species: list of strings denoting the
-               symbols of chemical elements
-               present in species.
+      species : list of strings denoting the symbols of chemical 
+          elements present in species.
 
-      eigenValues: array-like of shape 
-                   (len(species), 3). Contains 
-                   atomic-like eigenalues of 
-                   the s, p and d angular momentum
-                   shells in a.u.
+      eigenValues : array-like of shape (len(species), 3). Contains 
+          atomic-like eigenalues of the s, p and d angular momentum
+          shells in a.u.
       
-      model: str, denoting the model used to
-             represent the Slater-Koster tables.
+      model : str, denoting the model used to represent the 
+          Slater-Koster tables.
 
-      pairs: list of strings, used for *.skf files 
-             lookup. "-" joined pairs of the symbols in
-             species.
+      pairs : list of strings, used for *.skf files lookup.
+          "-" delimited pairs of the symbols in species.
 
-      data: dictionary with keys denoting the different 
-            tables in slater-Koster files-set.
-            > key formatting:
-              - Vl1l2m, Sl1l2m: denot Hamiltonian and overlap
-                                tables respectively.
-              - l1, l2: angular momentum shells, with l1<=l2.
-                        However, using s, p, and d instead of 
-                        0,1, and 2 respectively.
+      data : dictionary with keys denoting the different tables in 
+          slater-Koster files-set.
+          > key formatting:
+              - Vl1l2m, Sl1l2m: denot Hamiltonian and overlap tables
+                  respectively.
+
+              - l1, l2: angular momentum shells, with l1<=l2. However, 
+                  using s, p, and d instead of 0,1, and 2 respectively.
 
               - m: |m1|=|m2| with mi the projection of li.
-                   m=s for sigma with m1 = m2 = 0
-                   m=p for pi with    m1 = m2 = +/- 1
-                   m=d for delta with m1 = m2 = +/- 2
+                  m=s for sigma with m1 = m2 = 0
+                  m=p for pi with    m1 = m2 = +/- 1
+                  m=d for delta with m1 = m2 = +/- 2
+
               e.g. Vsss, Spdp 
-            > value formatting:
-              - values are arrays of floats with shape 
-                 (nSpecies, nSpecies, nPoint) with nPoints
-                 the number of inter-nuclear distances in the
-                 tables. 
 
-              E. g. data["Vspp"][ii, jj, :] is the table
-              corresponding to the s-p hamiltonian integral
-              of type pi of spieces[ii]-species[jj].skf
+          > value formatting:
+              - values are arrays of floats with shape (nSpecies, 
+                  nSpecies, nPoint) with nPoints the number of 
+                  inter-nuclear distances in the tables. 
 
-            > an additional key "grid" points to the 
+              E. g. data["Vspp"][ii, jj, :] is the table corresponding
+              to the s-p hamiltonian integral of type pi of 
+              "spieces[ii]-species[jj].skf"
+
+          > an additional key "grid" points to the 
               inter-nuclear distance grid associated 
               with the tables.
-            ***NOTE: all tables are assumed to have same 
-                     cutoff distance and nPoints.
+
+          ***NOTE: all tables are assumed to have the same cutoff 
+              distance and nPoints.
                      
-      modelData: same as data, but with model parameters
-                 instead of integral tables.
+      modelData : same as data, but with model parameters instead of 
+          integral tables.
 
     """
     def __init__(self, **kwargs):
@@ -128,25 +126,25 @@ class Problem:
     @classmethod
     def fromDictionary(cls, **kwargs):
         """
-        Initialize from a simple format dictionary
-        kawrgs. A minimal valid example.
+        Initialize from a simple format dictionary kawrgs. A valid 
+        example:
 
-        kawargs = {
-        
-          "speciesWhatever": {
-          
-              "symbol": "Aa",
-              "Es": -0.2,
-              "Ep": -0.1,
-              "Ed": 0.0,
-               },
-
-         "models":{
-         
-             "global": True,
-             "model": "P_4 + G_2",
-             }
-        }
+            >>> kawargs = {
+            >>> 
+            >>>  "speciesWhatever": {
+            >>>  
+            >>>      "symbol": "Aa",
+            >>>      "Es": -0.2,
+            >>>      "Ep": -0.1,
+            >>>      "Ed": 0.0,
+            >>>       },
+            >>> 
+            >>> "models":{
+            >>> 
+            >>>     "global": True,
+            >>>     "model": "P_4 + G_2",
+            >>>     }
+            >>> }
         """
 
         keys = kwargs.keys()
@@ -184,29 +182,28 @@ class Problem:
     @classmethod
     def fromFile(cls, fileName):
         """
-        Initialize from a configuration file.
-        See standard library configparser for 
-        general description. 
+        Initialize from a configuration file. See standard library 
+        configparser for general description. 
         
         Basically the same as cls.fromDictionary .
 
-        fileName: str, specifying the configuration
-                  file to be read. E.g.
+        fileName : str, specifying the configuration file to be read.
+            E.g.
 
-                  cat <<EOF > fileName
-
-                      [species1]
-                         symbol = Aa
-                         maxL = 2
-                         Es = 0.0
-                         Ep = 0.0
-                         Ed = 0.0
-                      
-                      [models]
-                         global = yes
-                         model = g_1 * p_9 + p_5 
-                      
-                  EOF
+                cat <<EOF > fileName
+    
+                    [species1]
+                       symbol = Aa
+                       maxL = 2
+                       Es = 0.0
+                       Ep = 0.0
+                       Ed = 0.0
+                    
+                    [models]
+                       global = yes
+                       model = g_1 * p_9 + p_5 
+                    
+                EOF
         """
         config = readConfig(fileName)
         sections = config.items()
@@ -242,8 +239,7 @@ class Problem:
 
     def fetchData(self, ir0=0):
         """
-        Read all relevant *.skf and extract
-        the electronic part. Return data.
+        Read all relevant *.skf and extract the electronic part. 
         """
         sk = {}
         for pp in self.pairs:
@@ -270,8 +266,7 @@ class Problem:
 
     def makeModelData(self, model=None, ir0=0):
         """
-        Fit the model to the Slater-Koster
-        tables. Retun modelData.
+        Fit the model to the Slater-Koster tables.
         """
         if self.data == None:
             self.data = self.fetchData(ir0)
@@ -307,8 +302,7 @@ class Problem:
                                           }
                              )
                     matrix[ii, jj, :] = pOpt.copy()
-                    text = f"max abs error in "\
-                              f"{key}[{ii},{jj}]: {err}"
+                    text = f"max abs error in {key}[{ii},{jj}]: {err}"
                     print(text)
             modelData[key] = matrix.copy()
         return modelData

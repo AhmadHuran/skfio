@@ -26,12 +26,10 @@ import numpy as np
 from .parsing import atomizeModel
 
 
-def polynomial(xx, x0, *cc):
+def polynomial(xx, *cc, x0=0.0):
     """
-    Evaluate polynomial of degree n
-    or its derivatives.
-    The polynomial is represented in 
-    the power basis:
+    Evaluate polynomial of degree n or its derivatives.
+    The polynomial is represented in the power basis:
 
          n
         ===
@@ -40,21 +38,25 @@ def polynomial(xx, x0, *cc):
         ===
        m = 0
     
-    xx: scalar or array-like of floats.
-        The points at which the function
-        is evaluated.
+    Parameters:
+    -----------
+        xx : scalar or array-like of floats. 
+             The points at which the function
+             is evaluated.
 
-    cc: scalar or array-like of 
-        shape(n+1) of floats.
-        The coefficients vector
-        defining the polynomial.
+        cc : scalar or array-like of shape(n+1) of floats.
+             The coefficients vector defining the polynomial.
+    
+        x0: scalar float.
+            The origin of the local power basis.
+    
+        order: scalar int.
+               order of the derivative.
 
-    x0: scalar float.
-        The origin of the local power
-        basis.
 
-    order: scalar int.
-           order of the derivative.
+    Returns:
+    -------
+        array of shape (xx.size,)
 
     No type checks happen here.
     You are on your own.
@@ -63,58 +65,33 @@ def polynomial(xx, x0, *cc):
     Not intended for large degrees
     and differentiation orders.
 
-    Return: array of shape (xx.size,)
     """
     cc = np.array(cc)
     size = cc.size
 
-    order=0
-    if order == 0:
 
-        iis = np.arange(size)[None,:]
-        result = (xx - x0)[:,None]**iis
-        result *= cc[None,:]
-        result = result.sum(axis=1)
+    iis = np.arange(size)[None,:]
+    result = (xx - x0)[:,None]**iis
+    result *= cc[None,:]
+    result = result.sum(axis=1)
 
-        return result 
+    return result 
 
-    elif order > (size - 1): return np.zeros_like(xx)
-
-    else:
-
-        kk = order
-        kk_fac = factorial(kk)
-        iis = np.arange(kk, size)[None, :]
-        factors = kk_fac * binom(iis, kk) * cc[None,kk:]
-        result = (xx - x0)[:,None]**(iis - kk)
-        result *= factors
-        result = result.sum(axis=1)
-                       
-        return result
-
-def jacPolynomial(xx, x0, *cc):
+def jacPolynomial(xx, *cc, x0=0.0):
     """
     Compute the Jacobian matrix of skfio.models.polynomial
-    with respect to x0 and *cc.
+    with respect to *cc.
 
-    Return: array of shape (xx.size, coeff.size + 1).
-            J[ii, 0] is the jacobian at xx[ii] wrt x0
-            J[ii, jj>0] is the jacobian at xx[ii] wrt cc[jj - 1]
+    Returns :
+    ---------
+        array of shape (xx.size, coeff.size). J[ii, jj] is the 
+        jacobian at xx[ii] wrt cc[jj].
     """
     cc = np.array(cc)
     size = cc.size
-    iis = np.arange(size - 1)[None,:]
-
-    tmp = (xx - x0)[:,None]**iis
-    tmp *= -cc[None,1:] * (iis + 1)
-    tmp = tmp.sum(axis=1)
-
-    result = np.ones((xx.size, size + 1), dtype=float)
-
-    result[:,0]  = tmp
-
     iis = np.arange(1, size)[None,:]
-    result[:,2:] = (xx - x0)[:,None]**iis
+    result = np.ones((xx.size, size), dtype=float)
+    result[:,1:] = (xx - x0)[:,None]**iis
 
     return result
 
