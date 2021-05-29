@@ -285,8 +285,8 @@ class Problem:
             matrix = np.zeros((nSpec, nSpec, nP))
             for ii in range(nSpec):
                 for jj in range(nSpec):
-                    if jj > ii and key[1]==key[2]:
-                        matrix[ii,jj,:] = matrix[jj,ii,:]
+                    if ii > jj and key[1]==key[2]:
+                        matrix[ii,jj,:] = matrix[jj,ii,:].copy()
                         continue
                     pOpt, pCov, err = fit(grid,
                                           val[ii,jj,:],
