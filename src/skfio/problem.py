@@ -74,12 +74,10 @@ class Problem:
               to the s-p hamiltonian integral of type pi of 
               "spieces[ii]-species[jj].skf"
 
-          > an additional key "grid" points to the 
-              inter-nuclear distance grid associated 
-              with the tables.
-
-          ***NOTE: all tables are assumed to have the same cutoff 
-              distance and nPoints.
+          > an additional key "grids" points to the 
+              inter-nuclear distance grids associated 
+              with the tables. grids are a dictionary with pairs as
+              its keys.
                      
       modelData : same as data, but with model parameters instead of 
           integral tables.
@@ -241,14 +239,17 @@ class Problem:
         """
         Read all relevant *.skf and extract the electronic part. 
         """
+        nPoints = 0
         sk = {}
+        grids = {}
         for pp in self.pairs:
             sk[pp]= readSKfile("{}.skf".format(pp))
+            grids[pp] = sk[pp]["grid"][ir0:]
+            nPoints = max(nPoints, grids[pp].size)
+            print(nPoints)
         ang = "spd"
         data = {}
-        grid = sk[self.pairs[0]]["grid"][ir0:]
-        data["grid"] = grid
-        nPoints = grid.size
+        data["grids"] = grids
         nSpec = len(self.species)
         for nn, (l1, l2, mm)  in enumerate(skfOrder):
             matrix = np.zeros((nSpec, nSpec, nPoints))
@@ -256,7 +257,8 @@ class Problem:
                 spec1, spec2 = pp.split("-")
                 isp1 = self.species.index(spec1)
                 isp2 = self.species.index(spec2)
-                matrix[isp1, isp2, :] = sk[pp]["data"][ir0:,nn]
+                nPoints2 = grids[pp].size
+                matrix[isp1, isp2, :nPoints2] = sk[pp]["data"][ir0:,nn]
             suffix = ang[l2].join([ang[l1], ang[mm]])
             if nn < 10: key = "V{}" 
             else: key = "S{}"
@@ -271,8 +273,6 @@ class Problem:
         if self.data == None:
             self.data = self.fetchData(ir0)
         modelData = {}
-        grid = self.data["grid"]
-        nPoints = grid.size
         nSpec = len(self.species)
         if model == None:
             modelFunc = self.modelFunc
@@ -281,20 +281,23 @@ class Problem:
         else:
             modelFunc, modelJac, nP = makeModel(model)
         for key, val in self.data.items():
-            if key == "grid": continue
+            if key == "grids": continue
             matrix = np.zeros((nSpec, nSpec, nP))
             for ii in range(nSpec):
                 for jj in range(nSpec):
                     if ii > jj and key[1]==key[2]:
                         matrix[ii,jj,:] = matrix[jj,ii,:].copy()
                         continue
+                    spec1 = self.species[ii]
+                    spec2 = self.species[jj]
+                    grid = self.data["grids"]["-".join([spec1, spec2])]
                     pOpt, pCov, err = fit(grid,
-                                          val[ii,jj,:],
+                                          val[ii,jj,:grid.size],
                                           nP,
                                           modelFunc,
                                           modelJac,
                                          kwargs={
-                                          "maxfev":1500,
+                                          "maxfev":15000,
                                            "verbose": 0,
                                            "tr_solver": "exact",
                                            "loss": "linear",
