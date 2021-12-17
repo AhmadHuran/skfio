@@ -127,7 +127,7 @@ class Problem:
         Initialize from a simple format dictionary kawrgs. A valid 
         example:
 
-            >>> kawargs = {
+            >>> kwargs = {
             >>> 
             >>>  "speciesWhatever": {
             >>>  
@@ -246,7 +246,6 @@ class Problem:
             sk[pp]= readSKfile("{}.skf".format(pp))
             grids[pp] = sk[pp]["grid"][ir0:]
             nPoints = max(nPoints, grids[pp].size)
-            print(nPoints)
         ang = "spd"
         data = {}
         data["grids"] = grids

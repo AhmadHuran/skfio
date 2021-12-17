@@ -95,6 +95,113 @@ def jacPolynomial(xx, *cc, x0=0.0):
 
     return result
 
+def rational(xx, *cc, pp=1):
+    """
+    Evaluate the rational function: 
+
+                pp - 1
+                 ___
+                 ╲               ii
+                 ╱    cc[ii]   xx
+                 ‾‾‾
+               ii = 0
+    ────────────────────────────────────────
+          nn - 1
+           ___
+           ╲           2     (jj - pp + 1)
+    1  +   ╱     cc[jj]    xx
+           ‾‾‾
+         jj = pp
+
+
+    
+    Parameters:
+    -----------
+        xx : scalar or array-like of floats. 
+             The points at which the function
+             is evaluated.
+
+        cc : scalar or array-like of shape(nn) of floats.
+             The coefficients vector defining the rational function.
+    
+        pp: int.
+            Number of coefficients defining the numerator.
+            0 < pp < len(cc)
+    
+
+    Returns:
+    -------
+        array of shape (xx.size,)
+
+    No type checks happen here.
+    You are on your own.
+
+    WARNING:
+    Not intended for large degrees.
+    """
+    cc = np.array(cc)
+    nn = cc.size
+    assert pp > 0 and pp < nn
+
+    ###
+    #overriding pp by spliting the coefficients in half:
+    pp = int(np.ceil(nn / 2))
+    ###
+
+    num_cc = cc[:pp]
+    denom_cc = np.ones(nn - pp + 1)
+    denom_cc[1:] = cc[pp:]
+
+    return polynomial(xx, *num_cc) / polynomial(xx, *denom_cc) 
+    
+def jacRational(xx, *cc, pp=1):
+    """Similar to jacPolynomial"""
+    cc = np.array(cc)
+    nn = cc.size
+    assert pp > 0 and pp < nn
+
+    ###
+    #overriding pp by spliting the coefficients in half:
+    pp = int(np.ceil(nn / 2))
+    ###
+
+    num_cc = cc[:pp]
+    denom_cc = np.ones(nn - pp + 1)
+    denom_cc[1:] = cc[pp:]
+
+    num = polynomial(xx, *num_cc) 
+    denom = polynomial(xx, *denom_cc)
+
+    jac_num = jacPolynomial(xx, *num_cc)
+    jac_denom = jacPolynomial(xx, *denom_cc)[:,1:]
+    jac = np.zeros((xx.size, nn))
+    jac[:,:pp] = jac_num/denom[:,None]
+    jac[:,pp:] = -jac_denom*num[:,None]/denom[:,None]**2
+
+    return jac
+
+
+def rational2(xx, *cc, pp=1):
+    cc = np.array(cc)
+    nn = cc.size
+    assert pp > 0 and pp < nn
+
+    ###
+    #overriding pp by spliting the coefficients in half:
+    pp = int(np.ceil(nn / 2))
+    ###
+
+    iis = np.arange(pp)[None,:]
+    result = xx[:,None]**iis
+    result *= cc[None,:pp]
+    result = result.sum(axis=1)
+
+    jjs = np.arange(pp,nn)[None,:]
+    result2 = xx[:,None]**(jjs - pp + 1)
+    result2 *= cc[None,pp:]
+    result2 = result2.sum(axis=1)
+    return result / (1 + result2)
+
 def exponential(xx, *param):
     """
     Evaluate linear combination of epxonential
@@ -233,6 +340,8 @@ allModels = {
     "g": (gaussian, jacGaussian),
     "gx": (gaussian, "3-point"),
     "ex": (exponential, "3-point"),
+    "rx": (rational, "3-point"),
+    "r": (rational, jacRational),
         }
 
 def modelFuncSum(functions, paramLengths):
